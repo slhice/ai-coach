@@ -1,12 +1,9 @@
 import React, { useState } from 'react';
-import { Tab } from '@headlessui/react';
 import { Settings, Upload, Edit3, Link, TestTube, Save, Key, MessageSquare, Lock } from 'lucide-react';
 import { AppConfig } from './AppConfig';
 import { APIKeyConfig } from './APIKeyConfig';
 import { StyleConfig } from './StyleConfig';
-import { PromptConfig } from './PromptConfig';
-import { KnowledgeConfig } from './KnowledgeConfig';
-import { TestingPanel } from './TestingPanel';
+import { InstructionsConfig } from './InstructionsConfig';
 import { ConversationLogs } from './ConversationLogs';
 import { SecurityConfig } from './SecurityConfig';
 
@@ -18,9 +15,9 @@ export const AdminPanel: React.FC = () => {
         name: 'AI Coach',
         description: '',
         organization: '',
+        openAIKey: '',
         voiceChatEnabled: false,
         synthflowWidgetId: '',
-        openAIKey: '',
         showNotesEnabled: true
       },
       style: {
@@ -29,11 +26,8 @@ export const AdminPanel: React.FC = () => {
       },
       coaching: {
         greeting: "Hello! I'm your AI Coach. How can I help you learn and grow today?",
-        prompt: '',
-        approach: []
-      },
-      knowledge: {
-        sources: []
+        instructions: '',
+        guidelines: []
       },
       admin: {
         password: 'admin123',
@@ -59,10 +53,8 @@ export const AdminPanel: React.FC = () => {
     { name: 'API Key', icon: Key, component: APIKeyConfig },
     { name: 'App Settings', icon: Settings, component: AppConfig },
     { name: 'Style & Branding', icon: Edit3, component: StyleConfig },
-    { name: 'Coaching Approach', icon: Upload, component: PromptConfig },
-    { name: 'Knowledge Sources', icon: Link, component: KnowledgeConfig },
+    { name: 'Instructions', icon: Upload, component: InstructionsConfig },
     { name: 'Conversation Logs', icon: MessageSquare, component: ConversationLogs },
-    { name: 'Test & Refine', icon: TestTube, component: TestingPanel },
     { name: 'Security', icon: Lock, component: SecurityConfig }
   ];
 

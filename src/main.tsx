@@ -1,6 +1,6 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { FloatingWidget } from './FloatingWidget';
 import { AdminPanel } from './components/admin/AdminPanel';
 import { LoginPage } from './components/admin/LoginPage';
@@ -18,15 +18,13 @@ createRoot(root).render(
     <Router>
       <Routes>
         <Route path="/" element={<FloatingWidget />} />
+        <Route path="/admin" element={
+          <ProtectedRoute>
+            <AdminPanel />
+          </ProtectedRoute>
+        } />
         <Route path="/admin/login" element={<LoginPage />} />
-        <Route 
-          path="/admin/*" 
-          element={
-            <ProtectedRoute>
-              <AdminPanel />
-            </ProtectedRoute>
-          } 
-        />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
   </React.StrictMode>

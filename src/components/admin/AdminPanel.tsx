@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Settings, Upload, Edit3, Link, TestTube, Save, Key, MessageSquare, Lock } from 'lucide-react';
+import { Tab } from '@headlessui/react';
+import { Settings, Edit3, MessageSquare, Lock, Key } from 'lucide-react';
 import { AppConfig } from './AppConfig';
 import { APIKeyConfig } from './APIKeyConfig';
 import { StyleConfig } from './StyleConfig';
@@ -53,7 +54,7 @@ export const AdminPanel: React.FC = () => {
     { name: 'API Key', icon: Key, component: APIKeyConfig },
     { name: 'App Settings', icon: Settings, component: AppConfig },
     { name: 'Style & Branding', icon: Edit3, component: StyleConfig },
-    { name: 'Instructions', icon: Upload, component: InstructionsConfig },
+    { name: 'Instructions', icon: MessageSquare, component: InstructionsConfig },
     { name: 'Conversation Logs', icon: MessageSquare, component: ConversationLogs },
     { name: 'Security', icon: Lock, component: SecurityConfig }
   ];

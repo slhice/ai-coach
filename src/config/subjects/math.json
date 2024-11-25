@@ -1,0 +1,20 @@
+{
+  "id": "math-tutor",
+  "subject": "Mathematics",
+  "title": "Math AI Coach",
+  "description": "Expert mathematics tutor specializing in algebra, calculus, and statistics",
+  "synthflowWidgetId": "1732412363329x361703737348048260",
+  "materials": [
+    {
+      "title": "Algebra Fundamentals",
+      "content": "Core algebraic concepts including equations, functions, and graphs...",
+      "topics": ["algebra", "equations", "functions"]
+    },
+    {
+      "title": "Calculus Basics",
+      "content": "Introduction to derivatives, integrals, and their applications...",
+      "topics": ["calculus", "derivatives", "integrals"]
+    }
+  ],
+  "instructions": "Focus on step-by-step problem solving and visual explanations..."
+}

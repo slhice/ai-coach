@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Ensure the widget container is isolated */
+#ai-coach-widget {
+  all: initial;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* Prevent body scroll when widget is open */
+body.widget-open {
+  overflow: hidden;
+}
+
+/* Adjust widget container for better responsiveness */
+#ai-coach-widget .floating-widget {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 9999;
+}
+
+/* Ensure the widget content is centered and properly sized */
+.widget-content {
+  max-height: calc(100vh - 2rem);
+  max-width: calc(100vw - 2rem);
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+}

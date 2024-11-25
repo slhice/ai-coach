@@ -1,0 +1,27 @@
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { FloatingWidget } from './FloatingWidget';
+import { AdminPanel } from './components/admin/AdminPanel';
+import { LoginPage } from './components/admin/LoginPage';
+import { ProtectedRoute } from './components/admin/ProtectedRoute';
+import './index.css';
+
+createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<FloatingWidget />} />
+        <Route path="/admin/login" element={<LoginPage />} />
+        <Route 
+          path="/admin" 
+          element={
+            <ProtectedRoute>
+              <AdminPanel />
+            </ProtectedRoute>
+          } 
+        />
+      </Routes>
+    </BrowserRouter>
+  </React.StrictMode>
+);

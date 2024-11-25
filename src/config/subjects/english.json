@@ -1,0 +1,20 @@
+{
+  "id": "english-tutor",
+  "subject": "English Literature",
+  "title": "English AI Coach",
+  "description": "Expert English tutor specializing in literature analysis and writing",
+  "synthflowWidgetId": "1732412363330x361703737348048261",
+  "materials": [
+    {
+      "title": "Essay Writing Guide",
+      "content": "Structure of essays, thesis statements, and argumentation...",
+      "topics": ["writing", "essays", "composition"]
+    },
+    {
+      "title": "Literary Analysis",
+      "content": "Methods for analyzing themes, characters, and literary devices...",
+      "topics": ["analysis", "literature", "criticism"]
+    }
+  ],
+  "instructions": "Emphasize critical thinking and textual analysis..."
+}

@@ -8,6 +8,11 @@
     containerId: 'ai-coach-widget'
   };
 
+  // Only show widget if URL contains 'plc'
+  if (!window.location.href.toLowerCase().includes('plc')) {
+    return;
+  }
+
   function calculateWidgetDimensions() {
     var width, height;
     var screenWidth = window.innerWidth;

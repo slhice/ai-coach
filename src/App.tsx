@@ -6,13 +6,11 @@ import { NotesPanel } from './components/NotesPanel';
 import { VirtualChatPanel } from './components/VirtualChatPanel';
 import { Message } from './types';
 import { createTutoringChain, loadCustomKnowledgeBase } from './lib/aiConfig';
+import { secureStorage } from './lib/secureStorage';
 
-interface AppProps {}
-
-const App: React.FC<AppProps> = () => {
+const App: React.FC = () => {
   const [config, setConfig] = useState(() => {
-    const savedConfig = localStorage.getItem('aiCoachConfig');
-    return savedConfig ? JSON.parse(savedConfig) : {
+    return secureStorage.getItem('config') || {
       app: {
         name: 'AI Coach',
         voiceChatEnabled: false,
@@ -36,17 +34,15 @@ const App: React.FC<AppProps> = () => {
       timestamp: new Date().toISOString()
     };
     
-    // Start a new conversation
     const conversation = {
       id: Date.now().toString(),
       timestamp: new Date().toISOString(),
       messages: [initialMessage]
     };
     
-    // Get existing conversations or initialize empty array
-    const conversations = JSON.parse(localStorage.getItem('aiCoachConversations') || '[]');
+    const conversations = secureStorage.getItem('conversations') || [];
     conversations.push(conversation);
-    localStorage.setItem('aiCoachConversations', JSON.stringify(conversations));
+    secureStorage.setItem('conversations', conversations);
     
     return [initialMessage];
   });
@@ -57,43 +53,21 @@ const App: React.FC<AppProps> = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [tutoringChain, setTutoringChain] = useState<any>(null);
 
-  // Listen for config changes
-  useEffect(() => {
-    const handleStorageChange = () => {
-      const newConfig = localStorage.getItem('aiCoachConfig');
-      if (newConfig) {
-        setConfig(JSON.parse(newConfig));
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
-
   useEffect(() => {
     const initAI = async () => {
       try {
-        const sources = [
-          'https://path-to-your-course-material.pdf',
-          'https://your-documentation-url.com',
-        ];
-        
-        const context = await loadCustomKnowledgeBase(sources);
-        const chain = createTutoringChain(
-          'Your Subject', 
-          context,
-          config.app.openAIKey
-        );
+        const context = await loadCustomKnowledgeBase(config.knowledge?.sources || []);
+        const chain = createTutoringChain(config.app.name || 'AI Coach', context);
         setTutoringChain(chain);
       } catch (error) {
         console.error('Error initializing AI:', error);
       }
     };
 
-    if (config.app.openAIKey) {
+    if (import.meta.env.VITE_OPENAI_API_KEY) {
       initAI();
     }
-  }, [config.app.openAIKey]);
+  }, [config.app.name, config.knowledge?.sources]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -112,15 +86,14 @@ const App: React.FC<AppProps> = () => {
     
     setMessages(prev => [...prev, newMessage]);
     
-    // Update conversation in localStorage
-    const conversations = JSON.parse(localStorage.getItem('aiCoachConversations') || '[]');
+    const conversations = secureStorage.getItem('conversations') || [];
     const currentConversation = conversations[conversations.length - 1];
     currentConversation.messages.push(newMessage);
-    localStorage.setItem('aiCoachConversations', JSON.stringify(conversations));
+    secureStorage.setItem('conversations', conversations);
   };
 
   const generateAIResponse = async (userInput: string) => {
-    if (!config.app.openAIKey) {
+    if (!import.meta.env.VITE_OPENAI_API_KEY) {
       handleNewMessage("Please configure your OpenAI API key in the admin panel first.", true);
       return;
     }
@@ -147,7 +120,7 @@ const App: React.FC<AppProps> = () => {
   const handleSpeechResult = useCallback((transcript: string) => {
     handleNewMessage(transcript, false);
     generateAIResponse(transcript);
-  }, [tutoringChain]);
+  }, []);
 
   return (
     <div className="h-full flex flex-col bg-gradient-to-b from-blue-50 to-white">
@@ -185,7 +158,7 @@ const App: React.FC<AppProps> = () => {
                 exit={{ opacity: 0, x: 20 }}
                 className="w-1/3"
               >
-                <NotesPanel messages={messages} />
+                <NotesPanel />
               </motion.div>
             )}
             {showVirtualChat && config.app.voiceChatEnabled && (

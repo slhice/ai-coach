@@ -15,6 +15,9 @@ export default defineConfig({
       }
     }
   },
+  optimizeDeps: {
+    include: ['@langchain/openai', 'langchain']
+  },
   server: {
     port: 5173,
     host: true

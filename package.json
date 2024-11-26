@@ -11,20 +11,19 @@
   },
   "dependencies": {
     "@headlessui/react": "^1.7.18",
+    "@langchain/core": "^0.1.48",
     "@langchain/openai": "^0.0.21",
     "@tailwindcss/forms": "^0.5.7",
     "crypto-js": "^4.2.0",
     "framer-motion": "^11.0.8",
-    "langchain": "^0.1.25",
     "lucide-react": "^0.344.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-dropzone": "^14.2.3",
-    "react-router-dom": "^6.22.3",
-    "youtube-transcript": "^1.0.6"
+    "react-router-dom": "^6.22.3"
   },
   "devDependencies": {
-    "@types/crypto-js": "^4.2.2",
+    "@types/crypto-js": "^4.2.2", 
     "@types/react": "^18.2.55",
     "@types/react-dom": "^18.2.19",
     "@vitejs/plugin-react": "^4.2.1",

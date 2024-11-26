@@ -1,6 +1,7 @@
 import { ChatOpenAI } from '@langchain/openai';
-import { ChatPromptTemplate } from 'langchain/prompts';
-import { LLMChain } from 'langchain/chains';
+import { ChatPromptTemplate } from '@langchain/core/prompts';
+import { StringOutputParser } from '@langchain/core/output_parsers';
+import { RunnableSequence } from '@langchain/core/runnables';
 
 const createChatModel = () => {
   const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
@@ -47,21 +48,17 @@ export const createTutoringChain = (subject: string, context: string) => {
   }
 
   const prompt = createSpecializedPrompt(subject);
-  const chain = new LLMChain({ llm: model, prompt });
 
-  return async (input: string) => {
-    try {
-      const response = await chain.call({
-        subject,
-        context,
-        question: input
-      });
-      return response.text;
-    } catch (error) {
-      console.error('Error in tutoring chain:', error);
-      throw error;
-    }
-  };
+  return RunnableSequence.from([
+    {
+      question: (input: string) => input,
+      subject: () => subject,
+      context: () => context,
+    },
+    prompt,
+    model,
+    new StringOutputParser(),
+  ]);
 };
 
 export const loadCustomKnowledgeBase = async (sources: string[]) => {

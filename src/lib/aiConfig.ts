@@ -1,9 +1,6 @@
-import { ChatOpenAI } from '@langchain/openai';
-import { ChatPromptTemplate } from '@langchain/core/prompts';
-import { StringOutputParser } from '@langchain/core/output_parsers';
-import { RunnableSequence } from '@langchain/core/runnables';
-import { TutorConfig } from '../config/specialization';
-import { defaultCoachingConfig } from '../config/coaching';
+import { ChatOpenAI } from 'langchain/chat_models/openai';
+import { PromptTemplate } from 'langchain/prompts';
+import { LLMChain } from 'langchain/chains';
 
 const createChatModel = () => {
   const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
@@ -23,12 +20,9 @@ const createChatModel = () => {
   });
 };
 
-const createSpecializedPrompt = (config: TutorConfig) => ChatPromptTemplate.fromTemplate(`
-You are an EMC AI Coach specializing in ${config.subject}. You support 18-24 year old students in Canada learning manufacturing basics.
-
-Role: Expert ${config.subject} Coach for ${defaultCoachingConfig.organization}
-Experience: Advanced knowledge with proven teaching experience
-Teaching Style: Interactive, supportive, and practical
+const createSpecializedPrompt = (subject: string) => {
+  return new PromptTemplate({
+    template: `You are an EMC AI Coach specializing in {subject}. You support 18-24 year old students in Canada learning manufacturing basics.
 
 Context: {context}
 
@@ -43,45 +37,33 @@ Follow these coaching principles:
 6. Maintain engagement through practical applications
 7. Close with encouragement and clear next steps
 
-Remember to:
-- Stay aligned with EMC's educational approach
-- Use age-appropriate examples and explanations
-- Reference specific course materials when relevant
-- Offer additional resources when needed
-- Provide constructive feedback and encouragement
-- Address common objections with empathy
-- Maintain a supportive and motivating tone
+Response:`,
+    inputVariables: ['subject', 'context', 'question']
+  });
+};
 
-Response:
-`);
-
-export const createTutoringChain = (subject: string, context: string, apiKey?: string) => {
+export const createTutoringChain = (subject: string, context: string) => {
   const model = createChatModel();
   if (!model) {
     return null;
   }
 
-  const config: TutorConfig = {
-    id: 'tutor',
-    subject,
-    title: `${subject} AI Coach`,
-    description: `Expert ${subject} tutor`,
-    synthflowWidgetId: '',
-    sources: []
+  const prompt = createSpecializedPrompt(subject);
+  const chain = new LLMChain({ llm: model, prompt });
+
+  return async (input: string) => {
+    try {
+      const response = await chain.call({
+        subject,
+        context,
+        question: input
+      });
+      return response.text;
+    } catch (error) {
+      console.error('Error in tutoring chain:', error);
+      throw error;
+    }
   };
-
-  const specializedPrompt = createSpecializedPrompt(config);
-
-  return RunnableSequence.from([
-    {
-      question: (input: string) => input,
-      subject: () => config.subject,
-      context: () => context,
-    },
-    specializedPrompt,
-    model,
-    new StringOutputParser(),
-  ]);
 };
 
 export const loadCustomKnowledgeBase = async (sources: string[]) => {

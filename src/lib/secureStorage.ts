@@ -1,7 +1,7 @@
 import { AES, enc } from 'crypto-js';
 
-const STORAGE_KEY = 'aiCoachConversations';
-const ENCRYPTION_KEY = 'your-secure-key'; // In production, this should come from environment variables
+const STORAGE_KEY_PREFIX = 'aiCoach_';
+const ENCRYPTION_KEY = import.meta.env.VITE_ENCRYPTION_KEY || 'default-key';
 
 export const secureStorage = {
   encrypt(data: any) {
@@ -25,18 +25,56 @@ export const secureStorage = {
     }
   },
 
-  saveConversations(conversations: any[]) {
-    const encrypted = this.encrypt(conversations);
+  setItem(key: string, data: any) {
+    const encrypted = this.encrypt(data);
     if (encrypted) {
-      localStorage.setItem(STORAGE_KEY, encrypted);
+      localStorage.setItem(`${STORAGE_KEY_PREFIX}${key}`, encrypted);
     }
   },
 
+  getItem(key: string) {
+    const encrypted = localStorage.getItem(`${STORAGE_KEY_PREFIX}${key}`);
+    if (!encrypted) return null;
+    return this.decrypt(encrypted);
+  },
+
+  removeItem(key: string) {
+    localStorage.removeItem(`${STORAGE_KEY_PREFIX}${key}`);
+  },
+
+  saveKnowledgeSource(source: any) {
+    const sources = this.getItem('knowledgeSources') || [];
+    sources.push({
+      ...source,
+      id: Date.now().toString(),
+      timestamp: new Date().toISOString()
+    });
+    this.setItem('knowledgeSources', sources);
+  },
+
+  getKnowledgeSources() {
+    return this.getItem('knowledgeSources') || [];
+  },
+
+  saveConversation(conversation: any) {
+    const conversations = this.getItem('conversations') || [];
+    conversations.push({
+      ...conversation,
+      id: Date.now().toString(),
+      timestamp: new Date().toISOString()
+    });
+    this.setItem('conversations', conversations);
+  },
+
   getConversations() {
-    const encrypted = localStorage.getItem(STORAGE_KEY);
-    if (!encrypted) return [];
-    
-    const decrypted = this.decrypt(encrypted);
-    return decrypted || [];
+    return this.getItem('conversations') || [];
+  },
+
+  clearConversations() {
+    this.removeItem('conversations');
+  },
+
+  clearKnowledgeSources() {
+    this.removeItem('knowledgeSources');
   }
 };

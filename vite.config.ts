@@ -8,13 +8,27 @@ export default defineConfig({
     sourcemap: true,
     rollupOptions: {
       output: {
-        manualChunks: undefined
+        manualChunks: {
+          vendor: [
+            'react',
+            'react-dom',
+            'react-router-dom',
+            'framer-motion',
+            '@headlessui/react'
+          ]
+        }
       }
     }
   },
   server: {
     port: 5173,
-    host: true,
-    historyApiFallback: true
+    host: true
+  },
+  optimizeDeps: {
+    include: [
+      'react',
+      'react-dom',
+      'crypto-js'
+    ]
   }
 });

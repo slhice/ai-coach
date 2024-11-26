@@ -5,6 +5,8 @@ export default {
     extend: {},
   },
   plugins: [
-    require('@tailwindcss/forms'),
+    require('@tailwindcss/forms')({
+      strategy: 'class'
+    })
   ],
 };

@@ -6,7 +6,7 @@ export interface KnowledgeBaseConfig {
   systemPrompt: string;
 }
 
-export const generateCustomInstructions = (config: TutorConfig): string => {
+const generateCustomInstructions = (config: TutorConfig): string => {
   return `Use the following knowledge base for ${config.subject}:
 
 ${config.materials.map(m => `
@@ -21,7 +21,7 @@ When responding:
 4. Maintain consistency with the course structure`;
 };
 
-export const generateSystemPrompt = (config: TutorConfig): string => {
+const generateSystemPrompt = (config: TutorConfig): string => {
   return `You are an AI tutor for ${config.subject} at ${config.organization || 'Excellence in Manufacturing (EMC)'}.
 Your role is to help students understand concepts from the course materials.
 
@@ -32,7 +32,7 @@ Key guidelines:
 - Maintain a supportive teaching style`;
 };
 
-export const getKnowledgeBaseConfig = (config: TutorConfig): KnowledgeBaseConfig => {
+const getKnowledgeBaseConfig = (config: TutorConfig): KnowledgeBaseConfig => {
   return {
     openAIApiKey: import.meta.env.VITE_OPENAI_API_KEY || '',
     customInstructions: generateCustomInstructions(config),

@@ -4,20 +4,44 @@ import { exportForChatGPT, exportForSynthflow } from '../../lib/knowledgeBaseCon
 import { TutorConfig } from '../../types';
 
 interface KnowledgeExportProps {
-  config: TutorConfig;
+  config: any;
+  setConfig: (config: any) => void;
 }
+
+const convertToTutorConfig = (adminConfig: any): TutorConfig => ({
+  id: 'tutor',
+  subject: adminConfig.app?.name || 'AI Coach',
+  title: adminConfig.app?.name || 'AI Coach',
+  description: adminConfig.app?.description || '',
+  organization: adminConfig.app?.organization || 'Excellence in Manufacturing (EMC)',
+  synthflowWidgetId: adminConfig.app?.synthflowWidgetId || '',
+  materials: [
+    {
+      title: 'Core Knowledge',
+      content: adminConfig.coaching?.instructions || '',
+      topics: adminConfig.coaching?.guidelines || []
+    }
+  ],
+  instructions: adminConfig.coaching?.instructions || '',
+  customPrompt: adminConfig.coaching?.customPrompt || ''
+});
 
 export const KnowledgeExport: React.FC<KnowledgeExportProps> = ({ config }) => {
   const [copied, setCopied] = useState<'chatgpt' | 'synthflow' | null>(null);
+  const tutorConfig = convertToTutorConfig(config);
 
   const handleCopy = async (type: 'chatgpt' | 'synthflow') => {
-    const content = type === 'chatgpt' 
-      ? exportForChatGPT(config)
-      : exportForSynthflow(config);
+    try {
+      const content = type === 'chatgpt' 
+        ? exportForChatGPT(tutorConfig)
+        : exportForSynthflow(tutorConfig);
 
-    await navigator.clipboard.writeText(content);
-    setCopied(type);
-    setTimeout(() => setCopied(null), 2000);
+      await navigator.clipboard.writeText(content);
+      setCopied(type);
+      setTimeout(() => setCopied(null), 2000);
+    } catch (error) {
+      console.error('Error copying content:', error);
+    }
   };
 
   return (
@@ -69,7 +93,7 @@ export const KnowledgeExport: React.FC<KnowledgeExportProps> = ({ config }) => {
             Copy this configuration to your Synthflow widget settings to sync the knowledge base.
           </p>
           <a 
-            href="https://widget.synthflow.ai"
+            href="https://synthflow.ai"
             target="_blank"
             rel="noopener noreferrer"
             className="mt-2 inline-flex items-center text-sm text-blue-600 hover:text-blue-700"

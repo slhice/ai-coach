@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
 import { Tab } from '@headlessui/react';
-import { Settings, Edit3, MessageSquare, Lock, Key, Database } from 'lucide-react';
+import { Settings, Database, MessageSquare, Lock, Key, BookOpen } from 'lucide-react';
 import { AppConfig } from './AppConfig';
 import { APIKeyConfig } from './APIKeyConfig';
 import { StyleConfig } from './StyleConfig';
-import { InstructionsConfig } from './InstructionsConfig';
+import { BehaviourConfig } from './BehaviourConfig';
+import { KnowledgeSourcesPanel } from './KnowledgeSourcesPanel';
 import { ConversationLogs } from './ConversationLogs';
 import { SecurityConfig } from './SecurityConfig';
-import { KnowledgeExport } from './KnowledgeExport';
+import { secureStorage } from '../../lib/secureStorage';
 
 export const AdminPanel: React.FC = () => {
   const [config, setConfig] = useState(() => {
-    const savedConfig = localStorage.getItem('aiCoachConfig');
-    return savedConfig ? JSON.parse(savedConfig) : {
+    const savedConfig = secureStorage.getItem('config') || {
       app: {
         name: 'AI Coach',
         description: '',
@@ -28,8 +28,11 @@ export const AdminPanel: React.FC = () => {
       },
       coaching: {
         greeting: "Hello! I'm your AI Coach. How can I help you learn and grow today?",
-        instructions: '',
+        behaviour: '',
         guidelines: []
+      },
+      knowledge: {
+        sources: []
       },
       admin: {
         password: 'admin123',
@@ -37,12 +40,13 @@ export const AdminPanel: React.FC = () => {
         lockoutDuration: 15
       }
     };
+    return savedConfig;
   });
 
   const [showSaveSuccess, setShowSaveSuccess] = useState(false);
 
   const handleSave = () => {
-    localStorage.setItem('aiCoachConfig', JSON.stringify(config));
+    secureStorage.setItem('config', config);
     setShowSaveSuccess(true);
     setTimeout(() => setShowSaveSuccess(false), 3000);
   };
@@ -54,9 +58,9 @@ export const AdminPanel: React.FC = () => {
   const tabs = [
     { name: 'API Key', icon: Key, component: APIKeyConfig },
     { name: 'App Settings', icon: Settings, component: AppConfig },
-    { name: 'Style & Branding', icon: Edit3, component: StyleConfig },
-    { name: 'Instructions', icon: MessageSquare, component: InstructionsConfig },
-    { name: 'Knowledge Export', icon: Database, component: KnowledgeExport },
+    { name: 'Style & Branding', icon: Database, component: StyleConfig },
+    { name: 'Knowledge Sources', icon: BookOpen, component: KnowledgeSourcesPanel },
+    { name: 'Behaviour', icon: MessageSquare, component: BehaviourConfig },
     { name: 'Conversation Logs', icon: MessageSquare, component: ConversationLogs },
     { name: 'Security', icon: Lock, component: SecurityConfig }
   ];

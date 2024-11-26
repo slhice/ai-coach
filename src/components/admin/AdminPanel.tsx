@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Tab } from '@headlessui/react';
-import { Settings, Edit3, MessageSquare, Lock, Key } from 'lucide-react';
+import { Settings, Edit3, MessageSquare, Lock, Key, Database } from 'lucide-react';
 import { AppConfig } from './AppConfig';
 import { APIKeyConfig } from './APIKeyConfig';
 import { StyleConfig } from './StyleConfig';
 import { InstructionsConfig } from './InstructionsConfig';
 import { ConversationLogs } from './ConversationLogs';
 import { SecurityConfig } from './SecurityConfig';
+import { KnowledgeExport } from './KnowledgeExport';
 
 export const AdminPanel: React.FC = () => {
   const [config, setConfig] = useState(() => {
@@ -55,6 +56,7 @@ export const AdminPanel: React.FC = () => {
     { name: 'App Settings', icon: Settings, component: AppConfig },
     { name: 'Style & Branding', icon: Edit3, component: StyleConfig },
     { name: 'Instructions', icon: MessageSquare, component: InstructionsConfig },
+    { name: 'Knowledge Export', icon: Database, component: KnowledgeExport },
     { name: 'Conversation Logs', icon: MessageSquare, component: ConversationLogs },
     { name: 'Security', icon: Lock, component: SecurityConfig }
   ];

@@ -2,6 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --primary-color: #3B82F6;
+  --secondary-color: #1E40AF;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
+    Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -20,30 +33,6 @@
   background: #555;
 }
 
-/* Ensure the widget container is isolated */
-#ai-coach-widget {
-  all: initial;
-  font-family: system-ui, -apple-system, sans-serif;
-}
-
-/* Prevent body scroll when widget is open */
-body.widget-open {
-  overflow: hidden;
-}
-
-/* Adjust widget container for better responsiveness */
-#ai-coach-widget .floating-widget {
-  position: fixed;
-  bottom: 1rem;
-  right: 1rem;
-  z-index: 9999;
-}
-
-/* Ensure the widget content is centered and properly sized */
-.widget-content {
-  max-height: calc(100vh - 2rem);
-  max-width: calc(100vw - 2rem);
-  margin: auto;
-  display: flex;
-  flex-direction: column;
+.widget-open {
+  overflow: hidden !important;
 }

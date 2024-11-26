@@ -1,60 +1,43 @@
-import { ChatOpenAI } from '@langchain/openai';
-import { ChatPromptTemplate } from '@langchain/core/prompts';
-import { StringOutputParser } from '@langchain/core/output_parsers';
-import { RunnableSequence } from '@langchain/core/runnables';
-
-const createChatModel = () => {
+export const createTutoringChain = (subject: string, context: string) => {
   const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
   
   if (!apiKey) {
-    console.error('OpenAI API key not found in environment variables');
-    return null;
-  }
-  
-  return new ChatOpenAI({
-    openAIApiKey: apiKey,
-    modelName: 'gpt-4',
-    temperature: 0.7,
-    maxTokens: 2000
-  });
-};
-
-const createSpecializedPrompt = (subject: string) => {
-  return ChatPromptTemplate.fromTemplate(`
-You are an EMC AI Coach specializing in {subject}. You support 18-24 year old students in Canada learning manufacturing basics.
-
-Context: {context}
-
-Student's Question: {question}
-
-Follow these coaching principles:
-1. Start with a warm welcome and acknowledge the student's current progress
-2. Use analogies and examples relevant to manufacturing
-3. Provide visual explanations when possible
-4. Encourage critical thinking through interactive scenarios
-5. Address any signs of feeling overwhelmed or technical confusion
-6. Maintain engagement through practical applications
-7. Close with encouragement and clear next steps
-
-Response:`);
-};
-
-export const createTutoringChain = (subject: string, context: string) => {
-  const model = createChatModel();
-  if (!model) {
+    console.error('OpenAI API key not found');
     return null;
   }
 
-  const prompt = createSpecializedPrompt(subject);
+  return {
+    invoke: async (input: string) => {
+      try {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+          },
+          body: JSON.stringify({
+            model: 'gpt-4',
+            messages: [
+              {
+                role: 'system',
+                content: `You are an AI tutor specializing in ${subject}. ${context}`
+              },
+              {
+                role: 'user',
+                content: input
+              }
+            ],
+            temperature: 0.7,
+            max_tokens: 2000
+          })
+        });
 
-  return RunnableSequence.from([
-    {
-      question: (input: string) => input,
-      subject: () => subject,
-      context: () => context,
-    },
-    prompt,
-    model,
-    new StringOutputParser(),
-  ]);
+        const data = await response.json();
+        return data.choices[0].message.content;
+      } catch (error) {
+        console.error('Error calling OpenAI:', error);
+        return 'I apologize, but I encountered an error. Please try again.';
+      }
+    }
+  };
 };

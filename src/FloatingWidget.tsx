@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GraduationCap, X } from 'lucide-react';
 import App from './App';
+import { storage } from './lib/storage';
 
 export const FloatingWidget: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [config, setConfig] = useState(() => {
-    const savedConfig = localStorage.getItem('aiCoachConfig');
-    return savedConfig ? JSON.parse(savedConfig) : {
+  const [config] = useState(() => {
+    return storage.getItem('config') || {
       style: {
         primaryColor: '#3B82F6',
         secondaryColor: '#1E40AF'
@@ -17,28 +17,15 @@ export const FloatingWidget: React.FC = () => {
 
   useEffect(() => {
     if (isOpen) {
-      document.body.classList.add('widget-open');
+      document.body.style.overflow = 'hidden';
     } else {
-      document.body.classList.remove('widget-open');
+      document.body.style.overflow = 'unset';
     }
 
     return () => {
-      document.body.classList.remove('widget-open');
+      document.body.style.overflow = 'unset';
     };
   }, [isOpen]);
-
-  // Listen for config changes
-  useEffect(() => {
-    const handleStorageChange = () => {
-      const newConfig = localStorage.getItem('aiCoachConfig');
-      if (newConfig) {
-        setConfig(JSON.parse(newConfig));
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
 
   return (
     <div className="fixed bottom-4 right-4 z-50">

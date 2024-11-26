@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import { Tab } from '@headlessui/react';
-import { Settings, Database, MessageSquare, Lock, Key, BookOpen } from 'lucide-react';
+import { Settings, Edit3, MessageSquare, Lock, Key } from 'lucide-react';
 import { AppConfig } from './AppConfig';
 import { APIKeyConfig } from './APIKeyConfig';
 import { StyleConfig } from './StyleConfig';
 import { BehaviourConfig } from './BehaviourConfig';
-import { KnowledgeSourcesPanel } from './KnowledgeSourcesPanel';
 import { ConversationLogs } from './ConversationLogs';
 import { SecurityConfig } from './SecurityConfig';
 import { secureStorage } from '../../lib/secureStorage';
@@ -17,7 +16,6 @@ export const AdminPanel: React.FC = () => {
         name: 'AI Coach',
         description: '',
         organization: '',
-        openAIKey: '',
         voiceChatEnabled: false,
         synthflowWidgetId: '',
         showNotesEnabled: true
@@ -30,9 +28,6 @@ export const AdminPanel: React.FC = () => {
         greeting: "Hello! I'm your AI Coach. How can I help you learn and grow today?",
         behaviour: '',
         guidelines: []
-      },
-      knowledge: {
-        sources: []
       },
       admin: {
         password: 'admin123',
@@ -58,8 +53,7 @@ export const AdminPanel: React.FC = () => {
   const tabs = [
     { name: 'API Key', icon: Key, component: APIKeyConfig },
     { name: 'App Settings', icon: Settings, component: AppConfig },
-    { name: 'Style & Branding', icon: Database, component: StyleConfig },
-    { name: 'Knowledge Sources', icon: BookOpen, component: KnowledgeSourcesPanel },
+    { name: 'Style & Branding', icon: Edit3, component: StyleConfig },
     { name: 'Behaviour', icon: MessageSquare, component: BehaviourConfig },
     { name: 'Conversation Logs', icon: MessageSquare, component: ConversationLogs },
     { name: 'Security', icon: Lock, component: SecurityConfig }

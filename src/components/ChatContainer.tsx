@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { GraduationCap, Send } from 'lucide-react';
 import { ChatMessage } from './ChatMessage';
-import { VoiceWidget } from './VoiceWidget';
 import { Message } from '../types';
 
 interface ChatContainerProps {

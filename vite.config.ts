@@ -9,13 +9,8 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor: [
-            'react',
-            'react-dom',
-            'react-router-dom',
-            'framer-motion',
-            '@headlessui/react'
-          ]
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          ui: ['@headlessui/react', 'lucide-react', 'framer-motion']
         }
       }
     }
@@ -23,12 +18,5 @@ export default defineConfig({
   server: {
     port: 5173,
     host: true
-  },
-  optimizeDeps: {
-    include: [
-      'react',
-      'react-dom',
-      'crypto-js'
-    ]
   }
 });

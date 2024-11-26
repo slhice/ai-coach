@@ -2,6 +2,7 @@ import { PDFLoader } from "langchain/document_loaders/fs/pdf";
 import { TextLoader } from "langchain/document_loaders/fs/text";
 import { CheerioWebBaseLoader } from "langchain/document_loaders/web/cheerio";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
+import { YoutubeTranscript } from 'youtube-transcript';
 import { secureStorage } from './secureStorage';
 
 export interface KnowledgeSource {
@@ -52,7 +53,6 @@ export const processKnowledgeSource = async (source: KnowledgeSource) => {
 
       case 'youtube':
         if (typeof source.content === 'string') {
-          // Process YouTube transcript
           const transcript = await fetchYouTubeTranscript(source.content);
           documents = [{
             pageContent: transcript,
@@ -94,6 +94,16 @@ export const processKnowledgeSource = async (source: KnowledgeSource) => {
     throw error;
   }
 }
+
+const fetchYouTubeTranscript = async (videoId: string): Promise<string> => {
+  try {
+    const transcript = await YoutubeTranscript.fetchTranscript(videoId);
+    return transcript.map(t => t.text).join(' ');
+  } catch (error) {
+    console.error('Error fetching YouTube transcript:', error);
+    throw new Error('Failed to fetch YouTube transcript');
+  }
+};
 
 export const createFineTunedModel = async (projectId: string, sources: KnowledgeSource[]) => {
   try {
@@ -186,12 +196,4 @@ const prepareTrainingData = async (sources: KnowledgeSource[]) => {
 
   const data = await response.json();
   return data.id;
-}
-
-const fetchYouTubeTranscript = async (videoId: string) => {
-  // Implementation for fetching YouTube transcript
-  // Using youtube-transcript package
-  const { YoutubeTranscript } = await import('youtube-transcript');
-  const transcript = await YoutubeTranscript.fetchTranscript(videoId);
-  return transcript.map(t => t.text).join(' ');
 };

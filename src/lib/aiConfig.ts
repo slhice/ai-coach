@@ -1,5 +1,5 @@
-import { ChatOpenAI } from 'langchain/chat_models/openai';
-import { PromptTemplate } from 'langchain/prompts';
+import { ChatOpenAI } from '@langchain/openai';
+import { ChatPromptTemplate } from 'langchain/prompts';
 import { LLMChain } from 'langchain/chains';
 
 const createChatModel = () => {
@@ -21,8 +21,8 @@ const createChatModel = () => {
 };
 
 const createSpecializedPrompt = (subject: string) => {
-  return new PromptTemplate({
-    template: `You are an EMC AI Coach specializing in {subject}. You support 18-24 year old students in Canada learning manufacturing basics.
+  return ChatPromptTemplate.fromTemplate(`
+You are an EMC AI Coach specializing in {subject}. You support 18-24 year old students in Canada learning manufacturing basics.
 
 Context: {context}
 
@@ -37,9 +37,7 @@ Follow these coaching principles:
 6. Maintain engagement through practical applications
 7. Close with encouragement and clear next steps
 
-Response:`,
-    inputVariables: ['subject', 'context', 'question']
-  });
+Response:`);
 };
 
 export const createTutoringChain = (subject: string, context: string) => {

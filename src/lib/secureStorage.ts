@@ -1,7 +1,7 @@
 import { AES, enc } from 'crypto-js';
 
 const STORAGE_KEY_PREFIX = 'aiCoach_';
-const ENCRYPTION_KEY = 'EMC_AI_COACH_SECURE_STORAGE_KEY_2024';
+const ENCRYPTION_KEY = import.meta.env.VITE_ENCRYPTION_KEY || 'default-key';
 
 export const secureStorage = {
   encrypt(data: any) {
@@ -40,5 +40,41 @@ export const secureStorage = {
 
   removeItem(key: string) {
     localStorage.removeItem(`${STORAGE_KEY_PREFIX}${key}`);
+  },
+
+  saveKnowledgeSource(source: any) {
+    const sources = this.getItem('knowledgeSources') || [];
+    sources.push({
+      ...source,
+      id: Date.now().toString(),
+      timestamp: new Date().toISOString()
+    });
+    this.setItem('knowledgeSources', sources);
+  },
+
+  getKnowledgeSources() {
+    return this.getItem('knowledgeSources') || [];
+  },
+
+  saveConversation(conversation: any) {
+    const conversations = this.getItem('conversations') || [];
+    conversations.push({
+      ...conversation,
+      id: Date.now().toString(),
+      timestamp: new Date().toISOString()
+    });
+    this.setItem('conversations', conversations);
+  },
+
+  getConversations() {
+    return this.getItem('conversations') || [];
+  },
+
+  clearConversations() {
+    this.removeItem('conversations');
+  },
+
+  clearKnowledgeSources() {
+    this.removeItem('knowledgeSources');
   }
 };

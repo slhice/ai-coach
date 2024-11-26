@@ -1,7 +1,6 @@
-import { ChatOpenAI } from '@langchain/openai';
-import { ChatPromptTemplate } from '@langchain/core/prompts';
-import { StringOutputParser } from '@langchain/core/output_parsers';
-import { RunnableSequence } from '@langchain/core/runnables';
+import { ChatOpenAI } from 'langchain/chat_models/openai';
+import { PromptTemplate } from 'langchain/prompts';
+import { LLMChain } from 'langchain/chains';
 
 const createChatModel = () => {
   const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
@@ -22,8 +21,8 @@ const createChatModel = () => {
 };
 
 const createSpecializedPrompt = (subject: string) => {
-  return ChatPromptTemplate.fromTemplate(`
-You are an EMC AI Coach specializing in {subject}. You support 18-24 year old students in Canada learning manufacturing basics.
+  return new PromptTemplate({
+    template: `You are an EMC AI Coach specializing in {subject}. You support 18-24 year old students in Canada learning manufacturing basics.
 
 Context: {context}
 
@@ -38,7 +37,9 @@ Follow these coaching principles:
 6. Maintain engagement through practical applications
 7. Close with encouragement and clear next steps
 
-Response:`);
+Response:`,
+    inputVariables: ['subject', 'context', 'question']
+  });
 };
 
 export const createTutoringChain = (subject: string, context: string) => {
@@ -48,17 +49,21 @@ export const createTutoringChain = (subject: string, context: string) => {
   }
 
   const prompt = createSpecializedPrompt(subject);
+  const chain = new LLMChain({ llm: model, prompt });
 
-  return RunnableSequence.from([
-    {
-      question: (input: string) => input,
-      subject: () => subject,
-      context: () => context,
-    },
-    prompt,
-    model,
-    new StringOutputParser(),
-  ]);
+  return async (input: string) => {
+    try {
+      const response = await chain.call({
+        subject,
+        context,
+        question: input
+      });
+      return response.text;
+    } catch (error) {
+      console.error('Error in tutoring chain:', error);
+      throw error;
+    }
+  };
 };
 
 export const loadCustomKnowledgeBase = async (sources: string[]) => {

@@ -1,16 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { PenLine, Save, Download, Trash2, Tag, Plus, X } from 'lucide-react';
-import { Message, Note } from '../types';
-import { secureStorage } from '../lib/secureStorage';
 
-interface NotesPanelProps {
-  messages: Message[];
+interface Note {
+  id: string;
+  content: string;
+  timestamp: string;
+  tags: string[];
 }
 
-export const NotesPanel: React.FC<NotesPanelProps> = () => {
+interface NotesPanelProps {
+  messages: Array<{ text: string; isAI: boolean }>;
+}
+
+export const NotesPanel: React.FC<NotesPanelProps> = ({ messages }) => {
   const [notes, setNotes] = useState<Note[]>(() => {
-    return secureStorage.getItem('notes') || [];
+    const savedNotes = localStorage.getItem('aiCoachNotes');
+    return savedNotes ? JSON.parse(savedNotes) : [];
   });
   const [currentNote, setCurrentNote] = useState('');
   const [currentTags, setCurrentTags] = useState<string[]>([]);
@@ -19,7 +25,7 @@ export const NotesPanel: React.FC<NotesPanelProps> = () => {
   const [showTagInput, setShowTagInput] = useState(false);
 
   useEffect(() => {
-    secureStorage.setItem('notes', notes);
+    localStorage.setItem('aiCoachNotes', JSON.stringify(notes));
   }, [notes]);
 
   const getAllTags = () => {
@@ -45,7 +51,7 @@ export const NotesPanel: React.FC<NotesPanelProps> = () => {
       const newNote: Note = {
         id: Date.now().toString(),
         content: currentNote,
-        timestamp: new Date().toISOString(),
+        timestamp: new Date().toLocaleString(),
         tags: currentTags,
       };
       setNotes(prev => [newNote, ...prev]);
@@ -105,6 +111,7 @@ export const NotesPanel: React.FC<NotesPanelProps> = () => {
         </div>
       </div>
 
+      {/* Tags Filter */}
       <div className="mb-4 flex flex-wrap gap-2">
         <button
           onClick={() => setSelectedTag(null)}
@@ -140,7 +147,7 @@ export const NotesPanel: React.FC<NotesPanelProps> = () => {
             className="bg-gray-50 rounded-lg p-3 relative group"
           >
             <div className="flex justify-between items-start mb-2">
-              <p className="text-sm text-gray-600">{new Date(note.timestamp).toLocaleString()}</p>
+              <p className="text-sm text-gray-600">{note.timestamp}</p>
               <button
                 onClick={() => deleteNote(note.id)}
                 className="p-1 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -167,6 +174,7 @@ export const NotesPanel: React.FC<NotesPanelProps> = () => {
       </div>
 
       <div className="border-t pt-4">
+        {/* Tags Input */}
         <div className="mb-2 flex flex-wrap items-center gap-2">
           <Tag className="w-4 h-4 text-gray-500" />
           {currentTags.map(tag => (

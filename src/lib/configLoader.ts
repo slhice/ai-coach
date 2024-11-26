@@ -5,12 +5,9 @@ export const loadSubjectConfig = async (subject: string): Promise<TutorConfig> =
     const config = await import(`../config/subjects/${subject}.json`);
     return {
       ...config,
-      materials: config.materials.map((m: any) => ({
-        title: m.title,
-        content: m.content,
-        topics: m.topics,
-        moduleNumber: m.moduleNumber
-      }))
+      context: config.materials.map(m => 
+        `${m.title}\n${m.content}`
+      ).join('\n\n')
     };
   } catch (error) {
     console.error(`Error loading ${subject} configuration:`, error);
@@ -22,7 +19,7 @@ export const getAvailableSubjects = async (): Promise<string[]> => {
   try {
     const subjects = await import.meta.glob('../config/subjects/*.json');
     return Object.keys(subjects).map(path => 
-      path.split('/').pop()?.replace('.json', '') || ''
+      path.split('/').pop()?.replace('.json', '') ?? ''
     );
   } catch (error) {
     console.error('Error loading subjects:', error);

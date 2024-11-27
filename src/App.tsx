@@ -1,176 +1,46 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Header } from './components/Header';
-import { ChatContainer } from './components/ChatContainer';
-import { NotesPanel } from './components/NotesPanel';
-import { VirtualChatPanel } from './components/VirtualChatPanel';
-import { Message } from './types';
-import { createTutoringChain } from './lib/aiConfig';
-import { storage } from './lib/storage';
+import React, { useState } from 'react';
+import { ChatButton } from './components/ChatWidget/ChatButton';
+import { ChatWindow } from './components/ChatWidget/ChatWindow';
+import { Message } from './types/chat';
 
-const App: React.FC = () => {
-  const [config, setConfig] = useState(() => {
-    return storage.getItem('config') || {
-      app: {
-        name: 'AI Coach',
-        voiceChatEnabled: false,
-        synthflowWidgetId: '',
-        showNotesEnabled: true
-      },
-      style: {
-        primaryColor: '#3B82F6',
-        icon: null
-      }
-    };
-  });
+function App() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([
+    { text: "Hi there! How can I help you today?", isBot: true }
+  ]);
 
-  const [messages, setMessages] = useState<Message[]>(() => {
-    const initialMessage = {
-      text: config.coaching?.greeting || "Hello! I'm your AI Coach. How can I help you learn and grow today?",
-      isAI: true,
-      timestamp: new Date().toISOString()
-    };
+  const handleSendMessage = (message: string) => {
+    // Add user message
+    setMessages(prev => [...prev, { text: message, isBot: false }]);
     
-    const conversation = {
-      id: Date.now().toString(),
-      timestamp: new Date().toISOString(),
-      messages: [initialMessage]
-    };
-    
-    const conversations = storage.getItem('conversations') || [];
-    conversations.push(conversation);
-    storage.setItem('conversations', conversations);
-    
-    return [initialMessage];
-  });
-
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [showNotes, setShowNotes] = useState(false);
-  const [showVirtualChat, setShowVirtualChat] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [tutoringChain, setTutoringChain] = useState<any>(null);
-
-  useEffect(() => {
-    const initAI = async () => {
-      try {
-        const chain = createTutoringChain(config.app.name || 'AI Coach');
-        setTutoringChain(chain);
-      } catch (error) {
-        console.error('Error initializing AI:', error);
-      }
-    };
-
-    if (import.meta.env.VITE_OPENAI_API_KEY) {
-      initAI();
-    }
-  }, [config.app.name]);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    // Simulate bot response
+    setTimeout(() => {
+      setMessages(prev => [...prev, {
+        text: "Thanks for your message! I'm here to help you with your course material.",
+        isBot: true
+      }]);
+    }, 1000);
   };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const handleNewMessage = (text: string, isAI: boolean) => {
-    const newMessage = {
-      text,
-      isAI,
-      timestamp: new Date().toISOString()
-    };
-    
-    setMessages(prev => [...prev, newMessage]);
-    
-    const conversations = storage.getItem('conversations') || [];
-    const currentConversation = conversations[conversations.length - 1];
-    currentConversation.messages.push(newMessage);
-    storage.setItem('conversations', conversations);
-  };
-
-  const generateAIResponse = async (userInput: string) => {
-    if (!import.meta.env.VITE_OPENAI_API_KEY) {
-      handleNewMessage("Please configure your OpenAI API key first.", true);
-      return;
-    }
-
-    setIsProcessing(true);
-    try {
-      if (tutoringChain) {
-        const response = await tutoringChain.invoke(userInput);
-        handleNewMessage(response, true);
-      } else {
-        handleNewMessage("I apologize, but I'm not fully configured yet. Please try again.", true);
-      }
-    } catch (error) {
-      console.error('Error generating response:', error);
-      handleNewMessage(
-        "I apologize, but I'm having trouble accessing my knowledge base. Please try again.",
-        true
-      );
-    }
-    setIsProcessing(false);
-  };
-
-  const handleSpeechResult = useCallback((transcript: string) => {
-    handleNewMessage(transcript, false);
-    generateAIResponse(transcript);
-  }, []);
 
   return (
-    <div className="h-full flex flex-col bg-gradient-to-b from-blue-50 to-white">
-      <Header 
-        showNotes={showNotes} 
-        showVirtualChat={showVirtualChat}
-        onToggleNotes={() => {
-          setShowNotes(!showNotes);
-          setShowVirtualChat(false);
-        }}
-        onToggleVirtualChat={() => {
-          setShowVirtualChat(!showVirtualChat);
-          setShowNotes(false);
-        }}
-        voiceChatEnabled={config.app.voiceChatEnabled}
-        appName={config.app.name}
-        showNotesEnabled={config.app.showNotesEnabled}
-      />
-      
-      <main className="flex-1 p-4 overflow-hidden">
-        <div className="h-full flex space-x-4">
-          <ChatContainer
-            messages={messages}
-            showNotes={showNotes || showVirtualChat}
-            isProcessing={isProcessing}
-            onSpeechResult={handleSpeechResult}
-            messagesEndRef={messagesEndRef}
-          />
+    <div className="min-h-screen bg-gray-100">
+      {/* Your main content goes here */}
+      <div className="p-8">
+        <h1 className="text-2xl font-bold">Main Course Content</h1>
+        <p className="mt-4">This is where your course content would be displayed.</p>
+      </div>
 
-          <AnimatePresence>
-            {showNotes && config.app.showNotesEnabled && (
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                className="w-1/3"
-              >
-                <NotesPanel />
-              </motion.div>
-            )}
-            {showVirtualChat && config.app.voiceChatEnabled && (
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                className="w-1/3"
-              >
-                <VirtualChatPanel synthflowWidgetId={config.app.synthflowWidgetId} />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </main>
+      {/* Chat Widget */}
+      {isOpen && (
+        <ChatWindow
+          messages={messages}
+          onClose={() => setIsOpen(false)}
+          onSendMessage={handleSendMessage}
+        />
+      )}
+      <ChatButton onClick={() => setIsOpen(true)} />
     </div>
   );
-};
+}
 
 export default App;

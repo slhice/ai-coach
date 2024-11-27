@@ -5,17 +5,22 @@ import { ChatInput } from './ChatInput';
 import { NotesSection } from './NotesSection';
 import { VoiceChatSection } from './VoiceChatSection';
 import { Message } from '../../types/chat';
+import { AdminSettings } from '../../types/admin';
 
 interface ChatWindowProps {
   messages: Message[];
   onClose: () => void;
   onSendMessage: (message: string) => void;
+  settings: AdminSettings;
+  isProcessing?: boolean;
 }
 
 export const ChatWindow: React.FC<ChatWindowProps> = ({
   messages,
   onClose,
   onSendMessage,
+  settings,
+  isProcessing = false,
 }) => {
   const [activeSection, setActiveSection] = useState<'chat' | 'notes' | 'voice'>('chat');
   const [windowHeight, setWindowHeight] = useState(window.innerHeight);
@@ -29,7 +34,22 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  useEffect(() => {
+    if (
+      (activeSection === 'notes' && !settings.chatbotSettings.enableNotes) ||
+      (activeSection === 'voice' && !settings.chatbotSettings.enableVoiceChat)
+    ) {
+      setActiveSection('chat');
+    }
+  }, [settings.chatbotSettings.enableNotes, settings.chatbotSettings.enableVoiceChat, activeSection]);
+
   const chatHeight = Math.max(600, Math.min(windowHeight - 100, 800));
+
+  const style = {
+    '--primary-color': settings.format.primaryColor,
+    '--font-family': settings.format.fontFamily,
+    '--font-size': settings.format.fontSize,
+  } as React.CSSProperties;
 
   return (
     <div 
@@ -37,7 +57,8 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
       style={{ 
         height: `${chatHeight}px`,
         width: '800px',
-        maxWidth: 'calc(100vw - 2rem)'
+        maxWidth: 'calc(100vw - 2rem)',
+        ...style
       }}
     >
       <div className="flex h-full">
@@ -52,31 +73,37 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
           >
             <MessageCircle size={24} />
           </button>
-          <button
-            onClick={() => setActiveSection('notes')}
-            className={`p-3 rounded-lg mb-2 ${
-              activeSection === 'notes' ? 'bg-blue-100 text-blue-600' : 'text-gray-600 hover:bg-gray-100'
-            }`}
-            title="Notes"
-          >
-            <Pencil size={24} />
-          </button>
-          <button
-            onClick={() => setActiveSection('voice')}
-            className={`p-3 rounded-lg ${
-              activeSection === 'voice' ? 'bg-blue-100 text-blue-600' : 'text-gray-600 hover:bg-gray-100'
-            }`}
-            title="Voice Chat"
-          >
-            <Mic size={24} />
-          </button>
+          
+          {settings.chatbotSettings.enableNotes && (
+            <button
+              onClick={() => setActiveSection('notes')}
+              className={`p-3 rounded-lg mb-2 ${
+                activeSection === 'notes' ? 'bg-blue-100 text-blue-600' : 'text-gray-600 hover:bg-gray-100'
+              }`}
+              title="Notes"
+            >
+              <Pencil size={24} />
+            </button>
+          )}
+          
+          {settings.chatbotSettings.enableVoiceChat && settings.chatbotSettings.voiceChatEmbed && (
+            <button
+              onClick={() => setActiveSection('voice')}
+              className={`p-3 rounded-lg ${
+                activeSection === 'voice' ? 'bg-blue-100 text-blue-600' : 'text-gray-600 hover:bg-gray-100'
+              }`}
+              title="Voice Chat"
+            >
+              <Mic size={24} />
+            </button>
+          )}
         </div>
 
         {/* Main Content */}
         <div className="flex-1 flex flex-col">
           <div className="flex items-center justify-between p-4 border-b border-gray-200">
             <h2 className="text-lg font-semibold">
-              {activeSection === 'chat' && 'AI Coach'}
+              {activeSection === 'chat' && settings.chatbotSettings.name}
               {activeSection === 'notes' && 'Notes'}
               {activeSection === 'voice' && 'Voice Chat'}
             </h2>
@@ -95,6 +122,13 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                   {messages.map((msg, index) => (
                     <ChatMessage key={index} message={msg.text} isBot={msg.isBot} />
                   ))}
+                  {isProcessing && (
+                    <div className="flex items-center space-x-2 text-gray-500">
+                      <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" />
+                      <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                      <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }} />
+                    </div>
+                  )}
                 </div>
                 <div className="text-xs text-gray-400 px-4 pb-2 text-center">
                   Last Deployed: {new Date().toLocaleString()}
@@ -103,12 +137,12 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
               </div>
             )}
             
-            {activeSection === 'notes' && (
+            {activeSection === 'notes' && settings.chatbotSettings.enableNotes && (
               <NotesSection />
             )}
             
-            {activeSection === 'voice' && (
-              <VoiceChatSection />
+            {activeSection === 'voice' && settings.chatbotSettings.enableVoiceChat && (
+              <VoiceChatSection embedCode={settings.chatbotSettings.voiceChatEmbed} />
             )}
           </div>
         </div>

@@ -116,14 +116,10 @@ const AdminSettingsContext = createContext<{
 } | undefined>(undefined);
 
 export const AdminSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [settings, setSettings] = useState<AdminSettings>(DEFAULT_SETTINGS);
-
-  useEffect(() => {
+  const [settings, setSettings] = useState<AdminSettings>(() => {
     const savedSettings = adminService.getSettings();
-    if (savedSettings) {
-      setSettings(savedSettings);
-    }
-  }, []);
+    return savedSettings || DEFAULT_SETTINGS;
+  });
 
   const updateSettings = (newSettings: AdminSettings) => {
     setSettings(newSettings);

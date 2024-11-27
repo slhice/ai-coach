@@ -1,0 +1,2 @@
+export const STORAGE_KEY_PREFIX = 'aiCoach_';
+export const ENCRYPTION_KEY = 'EMC_AI_COACH_SECURE_STORAGE_KEY_2024';

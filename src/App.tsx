@@ -20,9 +20,6 @@ const App: React.FC = () => {
       style: {
         primaryColor: '#3B82F6',
         icon: null
-      },
-      coaching: {
-        greeting: "Hello! I'm your AI Coach. How can I help you learn and grow today?"
       }
     };
   });
@@ -56,7 +53,7 @@ const App: React.FC = () => {
   useEffect(() => {
     const initAI = async () => {
       try {
-        const chain = createTutoringChain(config.app.name || 'AI Coach', '');
+        const chain = createTutoringChain(config.app.name || 'AI Coach');
         setTutoringChain(chain);
       } catch (error) {
         console.error('Error initializing AI:', error);
@@ -93,19 +90,18 @@ const App: React.FC = () => {
 
   const generateAIResponse = async (userInput: string) => {
     if (!import.meta.env.VITE_OPENAI_API_KEY) {
-      handleNewMessage("Please configure your OpenAI API key in the admin panel first.", true);
+      handleNewMessage("Please configure your OpenAI API key first.", true);
       return;
     }
 
     setIsProcessing(true);
     try {
-      let response;
       if (tutoringChain) {
-        response = await tutoringChain.invoke(userInput);
+        const response = await tutoringChain.invoke(userInput);
+        handleNewMessage(response, true);
       } else {
-        response = "I apologize, but I'm not fully configured yet. Please ensure the API key is properly set up in the admin panel.";
+        handleNewMessage("I apologize, but I'm not fully configured yet. Please try again.", true);
       }
-      handleNewMessage(response, true);
     } catch (error) {
       console.error('Error generating response:', error);
       handleNewMessage(

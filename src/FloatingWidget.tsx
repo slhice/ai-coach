@@ -2,17 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GraduationCap, X } from 'lucide-react';
 import App from './App';
-import { storage } from './lib/storage';
 
 export const FloatingWidget: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [config] = useState(() => {
-    return storage.getItem('config') || {
-      style: {
-        primaryColor: '#3B82F6',
-        secondaryColor: '#1E40AF'
-      }
-    };
+  const [config] = useState({
+    style: {
+      primaryColor: '#3B82F6',
+      icon: null
+    }
   });
 
   useEffect(() => {

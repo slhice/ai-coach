@@ -5,7 +5,7 @@ export const loadSubjectConfig = async (subject: string): Promise<TutorConfig> =
     const config = await import(`../config/subjects/${subject}.json`);
     return {
       ...config,
-      materials: config.materials.map((m: any) => ({
+      materials: config.materials.map((m: Material) => ({
         title: m.title,
         content: m.content,
         topics: m.topics,

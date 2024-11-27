@@ -18,6 +18,10 @@ export const storage = {
   },
 
   removeItem(key: string) {
-    localStorage.removeItem(key);
+    try {
+      localStorage.removeItem(key);
+    } catch (error) {
+      console.error('Storage error:', error);
+    }
   }
 };

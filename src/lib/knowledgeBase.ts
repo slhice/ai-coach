@@ -1,5 +1,3 @@
-import { Material } from '../types';
-
 export type KnowledgeSourceType = 'text' | 'url' | 'pdf' | 'youtube';
 
 export interface KnowledgeSource {
@@ -38,12 +36,10 @@ export const processKnowledgeSource = async (source: KnowledgeSource): Promise<P
         break;
         
       case 'pdf':
-        // PDF processing would go here
         content = 'PDF content';
         break;
 
       case 'youtube':
-        // YouTube processing would go here  
         content = 'YouTube transcript';
         break;
     }
@@ -60,10 +56,4 @@ export const processKnowledgeSource = async (source: KnowledgeSource): Promise<P
     console.error('Error processing knowledge source:', error);
     throw error;
   }
-};
-
-export const combineKnowledgeSources = (materials: Material[]): string => {
-  return materials.map(m => 
-    `${m.title}\n${m.content}`
-  ).join('\n\n');
 };

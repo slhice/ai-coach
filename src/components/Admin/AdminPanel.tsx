@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
-import { X, Save } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Save, CheckCircle2 } from 'lucide-react';
 import { AdminTab } from '../../types/admin';
 import { ApiKeyTab } from './tabs/ApiKeyTab';
 import { ChatbotSettingsTab } from './tabs/ChatbotSettingsTab';
 import { FormatTab } from './tabs/FormatTab';
 import { ResponseStyleTab } from './tabs/ResponseStyleTab';
-import { KnowledgeSourceTab } from './tabs/KnowledgeSourceTab';
+import { KnowledgeSourcesTab } from './tabs/KnowledgeSourcesTab';
 import { ConversationsTab } from './tabs/ConversationsTab';
 import { SecurityTab } from './tabs/SecurityTab';
 import { useAdminSettings } from '../../contexts/AdminSettingsContext';
@@ -20,6 +20,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
   const [password, setPassword] = useState('');
   const [activeTab, setActiveTab] = useState<AdminTab>('apiKey');
   const [error, setError] = useState('');
+  const [showSaveSuccess, setShowSaveSuccess] = useState(false);
+
+  useEffect(() => {
+    if (showSaveSuccess) {
+      const timer = setTimeout(() => {
+        setShowSaveSuccess(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [showSaveSuccess]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,6 +43,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
 
   const handleSave = () => {
     updateSettings(settings);
+    setShowSaveSuccess(true);
   };
 
   if (!isAuthenticated) {
@@ -66,7 +77,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
     { id: 'chatbotSettings', label: 'Chatbot Settings' },
     { id: 'format', label: 'Format' },
     { id: 'responseStyle', label: 'Response Style' },
-    { id: 'knowledgeSource', label: 'Knowledge Source' },
+    { id: 'knowledgeSource', label: 'Knowledge Sources' },
     { id: 'conversations', label: 'Conversations' },
     { id: 'security', label: 'Security' },
   ];
@@ -77,6 +88,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
         <div className="flex items-center justify-between p-4 border-b">
           <h2 className="text-xl font-bold">Admin Panel</h2>
           <div className="flex items-center gap-2">
+            {showSaveSuccess && (
+              <div className="flex items-center gap-2 text-green-600 bg-green-50 px-3 py-1 rounded-full">
+                <CheckCircle2 size={16} />
+                <span className="text-sm">Changes saved!</span>
+              </div>
+            )}
             <button
               onClick={handleSave}
               className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
@@ -136,7 +153,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
               />
             )}
             {activeTab === 'knowledgeSource' && (
-              <KnowledgeSourceTab
+              <KnowledgeSourcesTab
                 settings={settings}
                 onUpdate={updateSettings}
               />

@@ -23,11 +23,7 @@ export const chatService = {
           messages: [
             {
               role: 'system',
-              content: prompt + '\n\nFormatting Instructions:\n' +
-                '- Use line breaks between paragraphs\n' +
-                '- Format lists with bullet points using "-" or "•"\n' +
-                '- Use numbered lists for sequential steps\n' +
-                '- Ensure proper spacing between sections'
+              content: prompt
             },
             {
               role: 'user',
@@ -83,17 +79,23 @@ function constructPrompt(message: string, settings: AdminSettings): string {
     });
   }
 
-  // Add knowledge sources if available
+  // Add knowledge sources context with flexibility guidelines
   if (knowledgeSource.sources.length > 0) {
     prompt += '\nKnowledge sources:\n';
     knowledgeSource.sources.forEach(source => {
       prompt += `- ${source}\n`;
     });
-  }
 
-  // Add custom processing instructions if available
-  if (knowledgeSource.customInstructions) {
-    prompt += `\nProcessing instructions:\n${knowledgeSource.customInstructions}\n`;
+    // Add knowledge source flexibility
+    prompt += `\nKnowledge Source Flexibility:\n${knowledgeSource.knowledgeSourceFlexibility}\n`;
+
+    // Add formatting instructions
+    prompt += `\nFormatting Instructions:\n${knowledgeSource.formattingInstructions}\n`;
+
+    // Add guidelines
+    prompt += `\nGuidelines:\n${knowledgeSource.guidelines}\n`;
+  } else {
+    prompt += '\nWARNING: No knowledge sources have been configured. Explain to the user that you need knowledge sources to provide accurate information.\n';
   }
 
   return prompt;

@@ -1,3 +1,5 @@
+import { Message } from './chat';
+
 export interface AdminSettings {
   apiKey: string;
   chatbotSettings: {
@@ -25,7 +27,9 @@ export interface AdminSettings {
   };
   knowledgeSource: {
     sources: string[];
-    customInstructions: string;
+    knowledgeSourceFlexibility: string;
+    formattingInstructions: string;
+    guidelines: string;
   };
   conversations: {
     maxHistory: number;

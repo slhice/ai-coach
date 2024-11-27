@@ -13,6 +13,7 @@ interface UploadedFile {
   name: string;
   type: string;
   size: string;
+  content?: string;
 }
 
 export const KnowledgeSourceTab: React.FC<KnowledgeSourceTabProps> = ({
@@ -49,16 +50,33 @@ export const KnowledgeSourceTab: React.FC<KnowledgeSourceTabProps> = ({
           setUrlError('Invalid URL format');
           return;
         }
+        
+        // Test URL accessibility
+        fetch(newSource)
+          .then(response => {
+            if (!response.ok) throw new Error('URL not accessible');
+            onUpdate({
+              ...settings,
+              knowledgeSource: {
+                ...settings.knowledgeSource,
+                sources: [...settings.knowledgeSource.sources, newSource.trim()],
+              },
+            });
+            setNewSource('');
+          })
+          .catch(() => {
+            setUrlError('URL is not accessible or readable');
+          });
+      } else {
+        onUpdate({
+          ...settings,
+          knowledgeSource: {
+            ...settings.knowledgeSource,
+            sources: [...settings.knowledgeSource.sources, newSource.trim()],
+          },
+        });
+        setNewSource('');
       }
-
-      onUpdate({
-        ...settings,
-        knowledgeSource: {
-          ...settings.knowledgeSource,
-          sources: [...settings.knowledgeSource.sources, newSource.trim()],
-        },
-      });
-      setNewSource('');
     }
   };
 
@@ -87,26 +105,33 @@ export const KnowledgeSourceTab: React.FC<KnowledgeSourceTabProps> = ({
     
     for (const file of Array.from(files)) {
       try {
+        const fileId = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+        const newFile: UploadedFile = {
+          id: fileId,
+          name: file.name,
+          type: file.type,
+          size: formatFileSize(file.size),
+        };
+
+        // Add file to uploaded files list
+        setUploadedFiles(prev => [...prev, newFile]);
+        
+        // Add file to knowledge sources
+        onUpdate({
+          ...settings,
+          knowledgeSource: {
+            ...settings.knowledgeSource,
+            sources: [...settings.knowledgeSource.sources, `[File] ${file.name}`],
+          },
+        });
+
+        // Process file content
         const content = await readFile(file);
         if (content) {
-          const fileId = Date.now().toString() + Math.random().toString(36).substr(2, 9);
-          const newFile: UploadedFile = {
-            id: fileId,
-            name: file.name,
-            type: file.type,
-            size: formatFileSize(file.size),
-          };
-
-          setUploadedFiles(prev => [...prev, newFile]);
-          
-          // Add file to knowledge sources
-          onUpdate({
-            ...settings,
-            knowledgeSource: {
-              ...settings.knowledgeSource,
-              sources: [...settings.knowledgeSource.sources, `[File] ${file.name}`],
-            },
-          });
+          // Store file content if needed
+          setUploadedFiles(prev => 
+            prev.map(f => f.id === fileId ? { ...f, content } : f)
+          );
         }
       } catch (error) {
         console.error('Error processing file:', error);
@@ -169,7 +194,7 @@ export const KnowledgeSourceTab: React.FC<KnowledgeSourceTabProps> = ({
     }
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     if (dropZoneRef.current) {
@@ -178,9 +203,31 @@ export const KnowledgeSourceTab: React.FC<KnowledgeSourceTabProps> = ({
     
     const { files } = e.dataTransfer;
     if (files && files.length > 0) {
-      handleFiles(files);
+      await handleFiles(files);
     }
   };
+
+  const removeFile = (fileId: string) => {
+    const file = uploadedFiles.find(f => f.id === fileId);
+    if (file) {
+      setUploadedFiles(prev => prev.filter(f => f.id !== fileId));
+      const sourceIndex = settings.knowledgeSource.sources.findIndex(
+        s => s === `[File] ${file.name}`
+      );
+      if (sourceIndex !== -1) {
+        handleRemoveSource(sourceIndex);
+      }
+    }
+  };
+
+  const defaultInstructions = `Format responses with proper structure:
+- Use bullet points for lists (start with "-" or "•")
+- Use numbered lists for sequential steps
+- Add line breaks between paragraphs
+- Use headings for sections when appropriate
+- Format code blocks with proper indentation
+- Use emphasis for important points
+- Create tables for structured data`;
 
   return (
     <div>
@@ -245,15 +292,7 @@ export const KnowledgeSourceTab: React.FC<KnowledgeSourceTabProps> = ({
                         <span className="text-xs text-gray-500">({file.size})</span>
                       </div>
                       <button
-                        onClick={() => {
-                          setUploadedFiles(prev => prev.filter(f => f.id !== file.id));
-                          const sourceIndex = settings.knowledgeSource.sources.findIndex(
-                            s => s.includes(file.name)
-                          );
-                          if (sourceIndex !== -1) {
-                            handleRemoveSource(sourceIndex);
-                          }
-                        }}
+                        onClick={() => removeFile(file.id)}
                         className="p-1 text-gray-400 hover:text-red-500"
                       >
                         <X size={16} />
@@ -340,7 +379,7 @@ export const KnowledgeSourceTab: React.FC<KnowledgeSourceTabProps> = ({
             Processing Instructions
           </label>
           <textarea
-            value={settings.knowledgeSource.customInstructions}
+            value={settings.knowledgeSource.customInstructions || defaultInstructions}
             onChange={(e) => onUpdate({
               ...settings,
               knowledgeSource: {
@@ -348,9 +387,12 @@ export const KnowledgeSourceTab: React.FC<KnowledgeSourceTabProps> = ({
                 customInstructions: e.target.value,
               },
             })}
-            className="w-full p-2 border border-gray-300 rounded h-32"
+            className="w-full p-2 border border-gray-300 rounded h-48 font-mono text-sm"
             placeholder="Enter instructions for processing knowledge sources..."
           />
+          <p className="mt-2 text-sm text-gray-500">
+            These instructions help format the AI's responses. You can customize the formatting rules to match your needs.
+          </p>
         </div>
       </div>
     </div>

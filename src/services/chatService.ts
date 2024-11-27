@@ -23,7 +23,11 @@ export const chatService = {
           messages: [
             {
               role: 'system',
-              content: prompt
+              content: prompt + '\n\nFormatting Instructions:\n' +
+                '- Use line breaks between paragraphs\n' +
+                '- Format lists with bullet points using "-" or "•"\n' +
+                '- Use numbered lists for sequential steps\n' +
+                '- Ensure proper spacing between sections'
             },
             {
               role: 'user',

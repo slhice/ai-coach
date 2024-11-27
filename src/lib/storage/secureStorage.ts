@@ -1,27 +1,37 @@
 import { encrypt, decrypt } from '../crypto/encryption';
 import { STORAGE_KEY_PREFIX } from '../crypto/constants';
+import { Storage } from './types';
+import { createBrowserStorage } from './browserStorage';
 
-export const secureStorage = {
+class SecureStorage implements Storage {
+  private browserStorage: Storage;
+
+  constructor() {
+    this.browserStorage = createBrowserStorage();
+  }
+
   setItem(key: string, data: any): void {
     const encrypted = encrypt(data);
     if (encrypted) {
-      localStorage.setItem(`${STORAGE_KEY_PREFIX}${key}`, encrypted);
+      this.browserStorage.setItem(`${STORAGE_KEY_PREFIX}${key}`, encrypted);
     }
-  },
+  }
 
   getItem<T>(key: string): T | null {
-    const encrypted = localStorage.getItem(`${STORAGE_KEY_PREFIX}${key}`);
+    const encrypted = this.browserStorage.getItem<string>(`${STORAGE_KEY_PREFIX}${key}`);
     if (!encrypted) return null;
     return decrypt(encrypted);
-  },
+  }
 
   removeItem(key: string): void {
-    localStorage.removeItem(`${STORAGE_KEY_PREFIX}${key}`);
-  },
+    this.browserStorage.removeItem(`${STORAGE_KEY_PREFIX}${key}`);
+  }
 
   clear(): void {
-    Object.keys(localStorage)
+    Object.keys(window.localStorage)
       .filter(key => key.startsWith(STORAGE_KEY_PREFIX))
-      .forEach(key => localStorage.removeItem(key));
+      .forEach(key => this.browserStorage.removeItem(key));
   }
-};
+}
+
+export const secureStorage = new SecureStorage();

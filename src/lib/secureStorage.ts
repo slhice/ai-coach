@@ -4,38 +4,28 @@ const STORAGE_KEY_PREFIX = 'aiCoach_';
 const ENCRYPTION_KEY = 'EMC_AI_COACH_SECURE_STORAGE_KEY_2024';
 
 export const secureStorage = {
-  encrypt(data: any) {
+  setItem(key: string, data: any) {
     try {
       const jsonStr = JSON.stringify(data);
-      return AES.encrypt(jsonStr, ENCRYPTION_KEY).toString();
+      const encrypted = AES.encrypt(jsonStr, ENCRYPTION_KEY).toString();
+      localStorage.setItem(`${STORAGE_KEY_PREFIX}${key}`, encrypted);
     } catch (error) {
       console.error('Encryption error:', error);
-      return null;
-    }
-  },
-
-  decrypt(encryptedData: string) {
-    try {
-      const bytes = AES.decrypt(encryptedData, ENCRYPTION_KEY);
-      const decryptedStr = bytes.toString(enc.Utf8);
-      return JSON.parse(decryptedStr);
-    } catch (error) {
-      console.error('Decryption error:', error);
-      return null;
-    }
-  },
-
-  setItem(key: string, data: any) {
-    const encrypted = this.encrypt(data);
-    if (encrypted) {
-      localStorage.setItem(`${STORAGE_KEY_PREFIX}${key}`, encrypted);
     }
   },
 
   getItem(key: string) {
-    const encrypted = localStorage.getItem(`${STORAGE_KEY_PREFIX}${key}`);
-    if (!encrypted) return null;
-    return this.decrypt(encrypted);
+    try {
+      const encrypted = localStorage.getItem(`${STORAGE_KEY_PREFIX}${key}`);
+      if (!encrypted) return null;
+      
+      const bytes = AES.decrypt(encrypted, ENCRYPTION_KEY);
+      const decrypted = bytes.toString(enc.Utf8);
+      return JSON.parse(decrypted);
+    } catch (error) {
+      console.error('Decryption error:', error);
+      return null;
+    }
   },
 
   removeItem(key: string) {

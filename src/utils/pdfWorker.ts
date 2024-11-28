@@ -1,17 +1,13 @@
 import * as pdfjsLib from 'pdfjs-dist';
 
-let isWorkerInitialized = false;
+// Initialize PDF.js with a bundled worker
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
 export const initPdfWorker = async () => {
-  if (!isWorkerInitialized) {
-    try {
-      const workerSrc = '/pdf.worker.min.js';
-      pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
-      isWorkerInitialized = true;
-    } catch (error) {
-      console.error('Failed to initialize PDF.js worker:', error);
-      throw new Error('Failed to initialize PDF worker');
-    }
+  try {
+    return pdfjsLib;
+  } catch (error) {
+    console.error('Failed to initialize PDF.js:', error);
+    throw new Error('Failed to initialize PDF processing');
   }
-  return pdfjsLib;
 };

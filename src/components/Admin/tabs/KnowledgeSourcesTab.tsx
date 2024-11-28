@@ -1,7 +1,6 @@
 import React, { useState, useRef, DragEvent } from 'react';
 import { AdminSettings } from '../../../types/admin';
 import { Plus, X, Upload, FileText, Loader2, AlertCircle } from 'lucide-react';
-import { initPdfWorker } from '../../../utils/pdfWorker';
 
 interface KnowledgeSourcesTabProps {
   settings: AdminSettings;
@@ -14,9 +13,23 @@ export const KnowledgeSourcesTab: React.FC<KnowledgeSourcesTabProps> = ({
 }) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState('');
-  const [newSource, setNewSource] = useState('');
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const getFileTypeLabel = (mimeType: string): string => {
+    switch (mimeType) {
+      case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+      case 'application/msword':
+        return 'Word';
+      case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
+      case 'application/vnd.ms-excel':
+        return 'Excel';
+      case 'text/plain':
+        return 'Text';
+      default:
+        return 'Document';
+    }
+  };
 
   const handleFileUpload = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
@@ -26,42 +39,40 @@ export const KnowledgeSourcesTab: React.FC<KnowledgeSourcesTabProps> = ({
 
     try {
       for (const file of Array.from(files)) {
-        if (file.type === 'application/pdf') {
-          const pdfjsLib = await initPdfWorker();
-          const arrayBuffer = await file.arrayBuffer();
-          const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-          let content = '';
-          
-          for (let i = 1; i <= pdf.numPages; i++) {
-            const page = await pdf.getPage(i);
-            const text = await page.getTextContent();
-            content += text.items.map((item: any) => item.str).join(' ') + '\n';
-          }
+        // Check file type
+        const validTypes = [
+          'text/plain',                                                    // .txt
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+          'application/msword',                                           // .doc
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',      // .xlsx
+          'application/vnd.ms-excel'                                      // .xls
+        ];
 
-          // Add the processed content to sources
-          const updatedSources = [...settings.knowledgeSource.sources];
-          updatedSources.push(`[PDF] ${file.name} (${formatFileSize(file.size)})`);
-          
-          onUpdate({
-            ...settings,
-            knowledgeSource: {
-              ...settings.knowledgeSource,
-              sources: updatedSources
-            }
-          });
-        } else if (file.type === 'text/plain') {
-          const text = await file.text();
-          const updatedSources = [...settings.knowledgeSource.sources];
-          updatedSources.push(`[TXT] ${file.name} (${formatFileSize(file.size)})`);
-          
-          onUpdate({
-            ...settings,
-            knowledgeSource: {
-              ...settings.knowledgeSource,
-              sources: updatedSources
-            }
-          });
+        if (!validTypes.includes(file.type)) {
+          throw new Error(`Unsupported file type: ${file.type}`);
         }
+
+        let content = '';
+        if (file.type === 'text/plain') {
+          content = await file.text();
+        }
+
+        // Format the display name
+        const fileType = getFileTypeLabel(file.type);
+        const fileName = file.name.replace(/\.[^/.]+$/, ''); // Remove file extension
+        const displayName = `[${fileType}] ${fileName}`;
+
+        // Add the processed content to sources
+        const updatedSources = [...settings.knowledgeSource.sources];
+        updatedSources.push(`${displayName} (${formatFileSize(file.size)})`);
+        
+        onUpdate({
+          ...settings,
+          knowledgeSource: {
+            ...settings.knowledgeSource,
+            sources: updatedSources
+          }
+        });
       }
     } catch (err) {
       console.error('Error processing file:', err);
@@ -72,6 +83,13 @@ export const KnowledgeSourcesTab: React.FC<KnowledgeSourcesTabProps> = ({
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+  };
+
+  const formatFileSize = (bytes: number): string => {
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    if (bytes === 0) return '0 B';
+    const i = Math.floor(Math.log(bytes) / Math.log(1024));
+    return `${(bytes / Math.pow(1024, i)).toFixed(2)} ${sizes[i]}`;
   };
 
   const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
@@ -90,23 +108,10 @@ export const KnowledgeSourcesTab: React.FC<KnowledgeSourcesTabProps> = ({
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
-    
-    const files = e.dataTransfer.files;
-    const validFiles = Array.from(files).filter(file => 
-      file.type === 'application/pdf' || file.type === 'text/plain'
-    );
-    
-    if (validFiles.length > 0) {
-      handleFileUpload(validFiles as unknown as FileList);
-    }
+    handleFileUpload(e.dataTransfer.files);
   };
 
-  const formatFileSize = (bytes: number): string => {
-    const sizes = ['B', 'KB', 'MB', 'GB'];
-    if (bytes === 0) return '0 B';
-    const i = Math.floor(Math.log(bytes) / Math.log(1024));
-    return `${(bytes / Math.pow(1024, i)).toFixed(2)} ${sizes[i]}`;
-  };
+  const [newSource, setNewSource] = useState('');
 
   const handleAddSource = () => {
     if (newSource.trim()) {
@@ -157,7 +162,7 @@ export const KnowledgeSourcesTab: React.FC<KnowledgeSourcesTabProps> = ({
                 onChange={(e) => handleFileUpload(e.target.files)}
                 className="hidden"
                 multiple
-                accept=".pdf,.txt"
+                accept=".txt,.doc,.docx,.xls,.xlsx"
               />
               <button
                 onClick={() => fileInputRef.current?.click()}
@@ -168,7 +173,7 @@ export const KnowledgeSourcesTab: React.FC<KnowledgeSourcesTabProps> = ({
               <span className="text-gray-500"> or drag and drop</span>
             </div>
             <p className="text-xs text-gray-500 mt-1">
-              PDF or TXT files up to 10MB
+              Text, Word, or Excel files up to 10MB
             </p>
           </div>
         </div>
